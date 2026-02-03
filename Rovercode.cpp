@@ -28,6 +28,11 @@ float d_2;
 int ultrasonic_mode;
 float mode_movement_right_angle;
 int s_1, s_2, s_3, s_4, s_5;
+DigitalIn Sensor_1_line(PTC4);
+DigitalIn Sensor_2_line(PTC5);
+DigitalIn Sensor_3_line(PTC10);
+DigitalIn Sensor_4_line(PTC11);
+DigitalIn Sensor_5_line(PTC12);
 
 void movement(){
     switch (mode){
@@ -133,6 +138,13 @@ void movement_main(){
     }
     
 }
+void sensor_in_to_s(){
+    s_1 = !Sensor_1_line;                
+    s_2 = !Sensor_2_line; 
+    s_3 = !Sensor_3_line; 
+    s_4 = !Sensor_4_line; 
+    s_5 = !Sensor_5_line; 
+}
 
 void sensor_movement_control(){
     if ((s_3 == 1 && s_4 == 1 && s_5 == 1) || (s_1 == 1 && s_2 == 1 && s_3 == 1)){
@@ -149,30 +161,37 @@ void sensor_movement_control(){
 void right_turn_movement(){
     mode = 2;
     movement();
+    Output_motion();
     wait_us(100000);
     mode = 1;
     movement();
+    Output_motion();
     mode = 7;
     movement();
+    Output_motion();
     wait_us(100000);
 }
 void left_turn_movement(){
     mode = 2;
     movement();
+    Output_motion();
     wait_us(100000);
     mode = 1;
     movement();
+    Output_motion();
     mode = 6;
     movement();
+    Output_motion();
     wait_us(100000);
 }
 void sensor_movement_control_right_angle(){
     mode_movement_right_angle = 1;
     if (s_3 == 1 && s_4 == 1 && s_5 == 1){
         right_turn_movement();
-    }else if (s_3 == 1 && s_4 == 1 && s_5 == 1){
+    }else if (s_1 == 1 && s_2 == 1 && s_3 == 1){
         left_turn_movement();
     }
+    mode_movement_right_angle = 0;
 
 }
 void ultrasonic_movement_control(){
@@ -187,7 +206,7 @@ void ultrasonic_movement_control(){
 void m_movement_control_switch(){
     if (d_1 < 5 || ultrasonic_mode != 0){
         m_movement_control = 3;
-    }if (mode_movement_right_angle == 1){
+    }else if (mode_movement_right_angle == 1){
         m_movement_control = 2;
     }
 }
@@ -212,6 +231,10 @@ int main()
     Left_motor.write(0);
 
     while (true) {
+        sensor_in_to_s();
+        m_movement_control_switch();
+        mode_control();
         movement_main();
+        ThisThread::sleep_for(10ms);
     }
 }
